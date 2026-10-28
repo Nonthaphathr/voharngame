@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ศึกคัดสรร พันธุ์โวหาร | ครูนนทพัทธ์ หิรัญเรือง</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Kanit', 'sans-serif'],
+            body: ['Sarabun', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    body {
+      font-family: 'Kanit', sans-serif;
+      background-color: #0b0f19;
+      color: #f8fafc;
+      overflow: hidden;
+      height: 100dvh;
+      width: 100vw;
+      margin: 0;
+    }
+
+    /* สายพานลำเลียง (Conveyor Belt Animation) */
+    .conveyor-track {
+      background-image: repeating-linear-gradient(
+        0deg,
+        rgba(30, 41, 59, 0.55) 0px,
+        rgba(30, 41, 59, 0.55) 28px,
+        rgba(15, 23, 42, 0.85) 28px,
+        rgba(15, 23, 42, 0.85) 56px
+      );
+      background-size: 100% 56px;
+      animation: moveBelt 1.2s linear infinite;
+    }
+    .fever-active .conveyor-track {
+      background-image: repeating-linear-gradient(
+        0deg,
+        rgba(124, 45, 18, 0.45) 0px,
+        rgba(124, 45, 18, 0.45) 28px,
+        rgba(67, 20, 7, 0.75) 28px,
+        rgba(67, 20, 7, 0.75) 56px
+      );
+      animation: moveBelt 0.6s linear infinite;
+    }
+    @keyframes moveBelt {
+      0% { background-position: 0 0; }
+      100% { background-position: 0 56px; }
+    }
+
+    /* เอฟเฟกต์ Fever Mode ขอบจอเรืองแสง */
+    .fever-glow {
+      box-shadow: inset 0 0 35px rgba(245, 158, 11, 0.45);
+      animation: pulseFever 0.8s ease-in-out infinite alternate;
+    }
+    @keyframes pulseFever {
+      from { box-shadow: inset 0 0 25px rgba(245, 158, 11, 0.35); }
+      to { box-shadow: inset 0 0 55px rgba(239, 68, 68, 0.65); }
+    }
+
+    /* แอนิเมชันสั่นเมื่อตอบผิด */
+    .shake-anim {
+      animation: shake 0.35s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-4px, 0, 0); }
+      20%, 80% { transform: translate3d(6px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-8px, 0, 0); }
+      40%, 60% { transform: translate3d(8px, 0, 0); }
+    }
+
+    /* ปุ่มกดโวหาร 3D Tactile */
+    .btn-3d {
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
+    }
+    .btn-3d:active {
+      transform: translateY(4px);
+    }
+
+    /* การ์ดคำถามบนสายพาน */
+    .word-card {
+      will-change: transform, top;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+  </style>
+</head>
+<body class="flex justify-center items-center bg-slate-950">
+
+  <!-- กรอบหลักขนาด Mobile App (เต็มจอบนมือถือ / กรอบสมาร์ตโฟนบนจอคอม) -->
+  <div id="appContainer" class="relative w-full max-w-[440px] h-[100dvh] bg-slate-900 flex flex-col justify-between overflow-hidden shadow-2xl border-x border-slate-800">
+
+    <!-- ==========================================
+         1. หน้าแรก (HOME SCREEN)
+    =========================================== -->
+    <div id="homeScreen" class="absolute inset-0 z-30 flex flex-col justify-between p-5 bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 overflow-y-auto">
+      <!-- ส่วนหัว + ปุ่มตั้งค่า Google Sheet -->
+      <div class="flex items-center justify-between gap-2">
+        <span id="dbStatusBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-sky-500/20 text-sky-300 border border-sky-500/30">
+          <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
+          กำลังเชื่อมต่อฐานข้อมูล...
+        </span>
+        <button onclick="openSettingsModal()" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs flex items-center gap-1 shrink-0">
+          ⚙️ จัดการระบบ
+        </button>
+      </div>
+
+      <!-- โลโก้เกม -->
+      <div class="text-center my-2">
+        <div class="inline-block px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-xs font-semibold mb-2">
+          ⚡ ACTION WORD SORTING GAME ⚡
+        </div>
+        <h1 class="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-orange-400 to-rose-400 drop-shadow">
+          ศึกคัดสรร<br/>พันธุ์โวหาร
+        </h1>
+        <p class="text-slate-300 text-xs mt-1 font-body">
+          แยกประเภทโวหารภาพพจน์บนสายพานก่อนร่วงตกขอบจอ!
+        </p>
+      </div>
+
+      <!-- ฟอร์มกรอกชื่อผู้เล่น -->
+      <div class="bg-slate-800/70 backdrop-blur-md border border-slate-700/80 rounded-2xl p-4 shadow-lg space-y-3">
+        <div>
+          <label class="block text-xs text-slate-300 mb-1 font-semibold">👤 ชื่อผู้เล่น / นักเรียน</label>
+          <input id="playerNameInput" type="text" placeholder="เช่น น้องนนท์ คนเก่ง" maxlength="25"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white text-sm focus:outline-none focus:border-amber-400" />
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs text-slate-300 mb-1 font-semibold">🏫 ชั้น/ห้อง</label>
+            <input id="playerClassInput" type="text" placeholder="เช่น ม.4/1" maxlength="12"
+              class="w-full px-3.5 py-2 rounded-xl bg-slate-900/90 border border-slate-700 text-white text-sm focus:outline-none focus:border-amber-400" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-300 mb-1 font-semibold">🔥 ความเร็วสายพาน</label>
+            <select id="difficultySelect" class="w-full px-3 py-2 rounded-xl bg-slate-900/90 border border-slate-700 text-amber-300 text-sm focus:outline-none">
+              <option value="normal">ปกติ (ฝึกฝน)</option>
+              <option value="fast">เร็ว (ท้าทาย)</option>
+              <option value="hardcore">สายฟ้าแลบ!</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- ปุ่มเริ่มเกม -->
+        <button onclick="startGame()" class="btn-3d w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 text-slate-950 font-extrabold text-lg shadow-[0_5px_0_#9a3412] flex items-center justify-center gap-2">
+          🚀 เริ่มเดินสายพาน!
+        </button>
+
+        <!-- ปุ่มคู่มือ & ตารางคะแนน -->
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="openGuideModal()" class="py-2 rounded-xl bg-slate-700/70 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-600">
+            📖 สรุปโวหารทั้ง 6
+          </button>
+          <button onclick="openLeaderboardModal()" class="py-2 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 text-xs font-semibold border border-indigo-500/40">
+            🏆 ตารางคะแนนสูงสุด
+          </button>
+        </div>
+      </div>
+
+      <!-- ฟุตเตอร์เครดิตผู้พัฒนา -->
+      <div class="text-center pt-2 border-t border-slate-800/80">
+        <p class="text-xs font-semibold text-amber-300">พัฒนาโดย ครูนนทพัทธ์ หิรัญเรือง</p>
+        <p class="text-[11px] text-slate-400">กลุ่มสาระการเรียนรู้ภาษาไทย | สื่อการเรียนรู้เชิงรุก (Active Learning)</p>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         2. หน้าเล่นเกม (GAMEPLAY SCREEN)
+    =========================================== -->
+    <!-- แถบสถานะด้านบน (Top HUD) -->
+    <div class="relative z-20 bg-slate-900/95 border-b border-slate-800 px-3.5 py-2.5 flex items-center justify-between">
+      <!-- หัวใจ (Lives) + ปุ่มเสียง -->
+      <div class="flex items-center gap-2">
+        <button onclick="toggleMute()" id="soundBtn" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-sm">
+          🔊
+        </button>
+        <div id="livesDisplay" class="flex items-center gap-0.5 text-lg">
+          ❤️❤️❤️
+        </div>
+      </div>
+
+      <!-- คอมโบ & FEVER Badge -->
+      <div class="flex flex-col items-center">
+        <div id="feverBadge" class="hidden px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 text-slate-950 font-extrabold text-[11px] animate-bounce">
+          🔥 FEVER x2 🔥
+        </div>
+        <div id="comboText" class="text-xs font-bold text-amber-300">COMBO x0</div>
+      </div>
+
+      <!-- คะแนน & เวลา -->
+      <div class="text-right">
+        <div class="text-[11px] text-slate-400 flex items-center justify-end gap-1">
+          ⏱️ <span id="timerDisplay" class="font-bold text-white">60</span>s
+        </div>
+        <div id="scoreDisplay" class="text-xl font-extrabold text-emerald-400 leading-none">
+          0
+        </div>
+      </div>
+    </div>
+
+    <!-- พื้นที่สายพานลำเลียง (Conveyor Belt Arena) -->
+    <div id="beltArena" class="relative flex-1 conveyor-track overflow-hidden flex justify-center">
+      <!-- รางสายพานด้านข้าง -->
+      <div class="absolute inset-y-0 left-3 w-2 bg-slate-700/60 border-x border-slate-600/50"></div>
+      <div class="absolute inset-y-0 right-3 w-2 bg-slate-700/60 border-x border-slate-600/50"></div>
+
+      <!-- เส้นอันตรายด้านล่าง (Danger Zone) -->
+      <div class="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-rose-950/80 to-transparent border-b-4 border-rose-500/80 flex items-end justify-center pb-1 pointer-events-none">
+        <span class="text-[10px] tracking-widest uppercase font-bold text-rose-300/90 animate-pulse">
+          ⚠️ DANGER ZONE • อย่าให้ข้อความตกสายพาน ⚠️
+        </span>
+      </div>
+
+      <!-- คอนเทนเนอร์ใส่การ์ดที่กำลังไหลลงมา -->
+      <div id="cardLayer" class="relative w-full h-full pointer-events-none"></div>
+
+      <!-- ป๊อปอัปแจ้งผล ตอบถูก/ผิด/เฉลยสั้นๆ -->
+      <div id="feedbackToast" class="pointer-events-none opacity-0 transition-opacity duration-200 absolute top-3 inset-x-6 z-20 text-center px-3 py-1.5 rounded-xl text-xs font-bold shadow-lg"></div>
+    </div>
+
+    <!-- แผงปุ่มกดแยกประเภทโวหาร (Bottom Control Deck - ถนัดนิ้วโป้งบนมือถือ) -->
+    <div class="relative z-20 bg-slate-900 border-t border-slate-800 p-3 pb-4">
+      <div class="flex items-center justify-between mb-1.5 px-1">
+        <span class="text-[11px] text-slate-400">แตะถังโวหารให้ตรงกับการ์ดเป้าหมาย (กรอบสีทอง)</span>
+        <span id="remainCount" class="text-[11px] text-indigo-300 font-semibold">คลังโจทย์พร้อม</span>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2">
+        <!-- 1. อุปมา -->
+        <button onclick="handleAnswer('อุปมา')" class="btn-3d py-2.5 px-2 rounded-xl bg-sky-500 active:bg-sky-600 text-slate-950 font-extrabold shadow-[0_4px_0_#0369a1] flex flex-col items-center">
+          <span class="text-sm leading-tight">อุปมา</span>
+          <span class="text-[10px] font-medium opacity-80">เหมือน/ดุจ/ราว</span>
+        </button>
+
+        <!-- 2. อุปลักษณ์ -->
+        <button onclick="handleAnswer('อุปลักษณ์')" class="btn-3d py-2.5 px-2 rounded-xl bg-purple-500 active:bg-purple-600 text-white font-extrabold shadow-[0_4px_0_#6b21a8] flex flex-col items-center">
+          <span class="text-sm leading-tight">อุปลักษณ์</span>
+          <span class="text-[10px] font-medium opacity-85">เป็น/คือ เปรียบตรง</span>
+        </button>
+
+        <!-- 3. สัทพจน์ -->
+        <button onclick="handleAnswer('สัทพจน์')" class="btn-3d py-2.5 px-2 rounded-xl bg-amber-400 active:bg-amber-500 text-slate-950 font-extrabold shadow-[0_4px_0_#b45309] flex flex-col items-center">
+          <span class="text-sm leading-tight">สัทพจน์</span>
+          <span class="text-[10px] font-medium opacity-80">เลียนเสียงธรรมชาติ</span>
+        </button>
+
+        <!-- 4. บุคลาธิษฐาน -->
+        <button onclick="handleAnswer('บุคลาธิษฐาน')" class="btn-3d py-2.5 px-2 rounded-xl bg-emerald-500 active:bg-emerald-600 text-slate-950 font-extrabold shadow-[0_4px_0_#047857] flex flex-col items-center">
+          <span class="text-sm leading-tight">บุคลาธิษฐาน</span>
+          <span class="text-[10px] font-medium opacity-80">สิ่งของทำกิริยาคน</span>
+        </button>
+
+        <!-- 5. อธิพจน์ -->
+        <button onclick="handleAnswer('อธิพจน์')" class="btn-3d py-2.5 px-2 rounded-xl bg-rose-500 active:bg-rose-600 text-white font-extrabold shadow-[0_4px_0_#9f1239] flex flex-col items-center">
+          <span class="text-sm leading-tight">อธิพจน์</span>
+          <span class="text-[10px] font-medium opacity-85">กล่าวเกินจริง</span>
+        </button>
+
+        <!-- 6. ไม่มีโวหาร (กับดัก) -->
+        <button onclick="handleAnswer('ไม่มีโวหาร')" class="btn-3d py-2.5 px-2 rounded-xl bg-slate-600 active:bg-slate-700 text-slate-100 font-extrabold shadow-[0_4px_0_#334155] flex flex-col items-center">
+          <span class="text-sm leading-tight">ไม่มีโวหาร</span>
+          <span class="text-[10px] font-medium opacity-80">ประโยคทั่วไป/ปัดทิ้ง</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         3. หน้าสรุปผลหลังจบเกม (GAME OVER MODAL)
+    =========================================== -->
+    <div id="gameOverScreen" class="hidden absolute inset-0 z-40 bg-slate-950/90 backdrop-blur-md flex flex-col justify-between p-5 overflow-y-auto">
+      <div class="text-center mt-2">
+        <div class="inline-block px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold mb-1">
+          🏁 สรุปผลการคัดสรรโวหาร 🏁
+        </div>
+        <h2 class="text-3xl font-extrabold text-white" id="endTitle">จบการแข่งขัน!</h2>
+        <p id="endPlayerInfo" class="text-xs text-slate-400 mt-0.5"></p>
+      </div>
+
+      <!-- กล่องคะแนน -->
+      <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 my-3 space-y-3">
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-700/70">
+            <div class="text-[11px] text-slate-400">คะแนนสุทธิ</div>
+            <div id="finalScore" class="text-2xl font-extrabold text-emerald-400">0</div>
+          </div>
+          <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-700/70">
+            <div class="text-[11px] text-slate-400">คอมโบสูงสุด</div>
+            <div id="finalCombo" class="text-2xl font-extrabold text-amber-400">0</div>
+          </div>
+          <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-700/70">
+            <div class="text-[11px] text-slate-400">ความแม่นยำ</div>
+            <div id="finalAccuracy" class="text-2xl font-extrabold text-sky-400">0%</div>
+          </div>
+        </div>
+
+        <div id="saveScoreStatus" class="text-center text-xs text-amber-300 font-semibold"></div>
+
+        <!-- รายการข้อที่พลาดเพื่อการเรียนรู้ (Active Review) -->
+        <div>
+          <div class="text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+            <span>📌 ทบทวนข้อที่คัดสรรพลาด:</span>
+            <span id="mistakeCountBadge" class="text-[11px] text-rose-400"></span>
+          </div>
+          <div id="mistakeList" class="max-h-40 overflow-y-auto space-y-1.5 pr-1 font-body text-xs"></div>
+        </div>
+      </div>
+
+      <!-- ปุ่มดำเนินการต่อ -->
+      <div class="space-y-2">
+        <button onclick="startGame()" class="btn-3d w-full py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 font-extrabold text-base shadow-[0_4px_0_#0f766e]">
+          🔄 เล่นอีกครั้ง (แก้มือ!)
+        </button>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="openLeaderboardModal()" class="py-2.5 rounded-xl bg-indigo-600/40 text-indigo-200 font-bold text-xs border border-indigo-500/40">
+            🏆 ดูอันดับคะแนน
+          </button>
+          <button onclick="backToHome()" class="py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs border border-slate-700">
+            🏠 กลับหน้าหลัก
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         4. MODAL: คู่มือสรุปโวหารภาพพจน์
+    =========================================== -->
+    <div id="guideModal" class="hidden absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-md p-5 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <h3 class="text-lg font-extrabold text-amber-300">📖 คัมภีร์โวหารภาพพจน์</h3>
+          <button onclick="closeGuideModal()" class="text-slate-400 hover:text-white text-sm px-2 py-1 bg-slate-800 rounded-lg">✕ ปิด</button>
+        </div>
+        <div class="mt-3 space-y-2.5 text-xs font-body overflow-y-auto max-h-[72dvh] pr-1">
+          <div class="p-3 rounded-xl bg-sky-500/10 border border-sky-500/30">
+            <div class="font-display font-bold text-sky-300 text-sm">1. อุปมา (เปรียบเทียบว่าเหมือน)</div>
+            <p class="text-slate-300 mt-0.5">มักมีคำเชื่อม: <b>เหมือน, ดุจ, ดั่ง, ราวกับ, ประดุจ, เพียง, เฉกเช่น, ละม้ายคล้าย</b> เช่น <i>"ปัญญาประดุจดังอาวุธ"</i></p>
+          </div>
+          <div class="p-3 rounded-xl bg-purple-500/10 border border-purple-500/30">
+            <div class="font-display font-bold text-purple-300 text-sm">2. อุปลักษณ์ (เปรียบเป็นสิ่งนั้นเลย)</div>
+            <p class="text-slate-300 mt-0.5">มักใช้คำว่า <b>"เป็น"</b> หรือ <b>"คือ"</b> หรือเปรียบโดยตรง เช่น <i>"ครูคือเรือจ้าง", "ชาวนาเป็นกระดูกสันหลังของชาติ"</i></p>
+          </div>
+          <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30">
+            <div class="font-display font-bold text-amber-300 text-sm">3. สัทพจน์ (เลียนเสียงธรรมชาติ)</div>
+            <p class="text-slate-300 mt-0.5">ใช้คำเลียนเสียงลม ฝน สัตว์ หรือสิ่งของ เช่น <i>"เปรี้ยงปร้าง", "ซ่าๆ", "ตึกตัก", "ติ๊กต็อก"</i></p>
+          </div>
+          <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+            <div class="font-display font-bold text-emerald-300 text-sm">4. บุคลาธิษฐาน (สิ่งไม่มีชีวิตทำกิริยาเหมือนคน)</div>
+            <p class="text-slate-300 mt-0.5">ให้ธรรมชาติหรือสิ่งของมีความรู้สึก/กิริยามนุษย์ เช่น <i>"สายลมกระซิบบอกรัก", "ท้องฟ้าร้องไห้"</i></p>
+          </div>
+          <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30">
+            <div class="font-display font-bold text-rose-300 text-sm">5. อธิพจน์ (กล่าวเกินจริง)</div>
+            <p class="text-slate-300 mt-0.5">เปรียบเทียบให้เกินความเป็นจริงเพื่อเน้นอารมณ์ เช่น <i>"คิดถึงใจจะขาด", "ร้อนตับจะแตก"</i></p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-700/30 border border-slate-600">
+            <div class="font-display font-bold text-slate-200 text-sm">6. ไม่มีโวหาร (โหมดกับดัก!)</div>
+            <p class="text-slate-300 mt-0.5">เป็นประโยคบอกเล่าหรือบรรยายตามตรง ไม่มีคำเปรียบเทียบหรือภาพพจน์ใดๆ</p>
+          </div>
+        </div>
+      </div>
+      <button onclick="closeGuideModal()" class="w-full py-2.5 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm">เข้าใจแล้ว ลุยเลย!</button>
+    </div>
+
+    <!-- ==========================================
+         5. MODAL: ตารางคะแนนสูงสุด (Leaderboard)
+    =========================================== -->
+    <div id="leaderboardModal" class="hidden absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-md p-5 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <h3 class="text-lg font-extrabold text-amber-300">🏆 ทำเนียบเซียนโวหาร (Top 10)</h3>
+          <button onclick="closeLeaderboardModal()" class="text-slate-400 hover:text-white text-sm px-2 py-1 bg-slate-800 rounded-lg">✕ ปิด</button>
+        </div>
+        <div id="leaderboardList" class="mt-3 space-y-2 overflow-y-auto max-h-[70dvh] pr-1"></div>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="syncWithGoogleSheet().then(renderLeaderboardItems)" class="py-2.5 px-4 rounded-xl bg-indigo-600/30 text-indigo-300 font-bold text-xs border border-indigo-500/40">
+          🔄 รีเฟรชคะแนน
+        </button>
+        <button onclick="closeLeaderboardModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-200 font-bold text-sm border border-slate-700">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         6. MODAL: จัดการระบบ & เพิ่มโจทย์ขึ้น Google Sheet
+    =========================================== -->
+    <div id="settingsModal" class="hidden absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-md p-5 flex flex-col justify-between overflow-y-auto">
+      <div class="space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <h3 class="text-lg font-extrabold text-amber-300">⚙️ จัดการระบบ & เพิ่มข้อสอบ</h3>
+          <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white text-sm px-2 py-1 bg-slate-800 rounded-lg">✕ ปิด</button>
+        </div>
+
+        <!-- ส่วนที่ 1: ฟอร์มเพิ่มข้อสอบใหม่ขึ้น Google Sheet โดยตรง -->
+        <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-3.5 space-y-2.5">
+          <div class="text-xs font-bold text-emerald-400 flex items-center gap-1">
+            ➕ เพิ่มโจทย์ใหม่ลง Google Sheets ทันที
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-300 mb-1">ข้อความ / วรรคทอง / ประโยคโจทย์:</label>
+            <input id="newQText" type="text" placeholder="เช่น ความรักเหมือนโรคา บันดาลตาให้มืดมน"
+              class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-400" />
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-300 mb-1">ชนิดโวหารภาพพจน์:</label>
+            <select id="newQCategory" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-amber-300 focus:outline-none">
+              <option value="อุปมา">อุปมา (เปรียบเหมือน/ดุจ/ราวกับ)</option>
+              <option value="อุปลักษณ์">อุปลักษณ์ (เปรียบเป็น/คือ)</option>
+              <option value="สัทพจน์">สัทพจน์ (เลียนเสียงธรรมชาติ)</option>
+              <option value="บุคลาธิษฐาน">บุคลาธิษฐาน (สิ่งของทำกิริยามนุษย์)</option>
+              <option value="อธิพจน์">อธิพจน์ (กล่าวเกินจริง)</option>
+              <option value="ไม่มีโวหาร">ไม่มีโวหาร (ประโยคทั่วไป/หลอกตา)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-300 mb-1">คำใบ้ / คำอธิบายเฉลย (Hint):</label>
+            <input id="newQHint" type="text" placeholder="เช่น มีคำว่า 'เหมือน' เปรียบความรักกับโรคภัย"
+              class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-400" />
+          </div>
+          <button onclick="addNewQuestionToSheet()" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow">
+            📤 บันทึกโจทย์ใหม่เข้า Google Sheet
+          </button>
+          <div id="addQStatus" class="text-xs text-amber-300 font-body text-center"></div>
+        </div>
+
+        <!-- ส่วนที่ 2: ตั้งค่า URL ฐานข้อมูล -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 space-y-2">
+          <label class="block text-[11px] text-slate-400 font-semibold">🔗 Google Apps Script Web App URL (เชื่อมต่อแล้ว):</label>
+          <input id="scriptUrlInput" type="url"
+            class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-300 focus:outline-none focus:border-amber-400" />
+          <div class="flex gap-2 pt-1">
+            <button onclick="saveScriptUrl()" class="flex-1 py-2 rounded-xl bg-indigo-500 text-white font-bold text-xs">
+              💾 บันทึก & ซิงค์ข้อมูลใหม่
+            </button>
+            <button onclick="clearScriptUrl()" class="py-2 px-3 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 font-bold text-xs">
+              คืนค่าเริ่มต้น
+            </button>
+          </div>
+          <div id="syncMessage" class="text-xs text-amber-300 font-body text-center"></div>
+        </div>
+      </div>
+
+      <button onclick="closeSettingsModal()" class="w-full py-2.5 mt-3 rounded-xl bg-slate-800 text-slate-300 font-bold text-sm">กลับหน้าหลัก</button>
+    </div>
+
+  </div>
+
+  <!-- ==========================================
+       JAVASCRIPT LOGIC & GOOGLE SHEET INTEGRATION
+  =========================================== -->
+  <script>
+    // ✅ ฝังลิงก์ Google Apps Script ของครูนนทพัทธ์เรียบร้อยแล้ว
+    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwmfRRZe1DeoFJAvuXGZpSNhQ5wEn0a-HRG2oWGKDspR8mK9XSAxwvN-D3jDFWKOOlp/exec";
+
+    // คลังข้อสอบสำรองในตัวเครื่อง (36 ข้อ ครบ 6 หมวด กรณีอินเทอร์เน็ตขัดข้อง)
+    const BUILTIN_QUESTIONS = [
+      { text: "ปัญญาประดุจดังอาวุธอันแหลมคม", category: "อุปมา", hint: "มีคำว่า 'ประดุจดัง' เปรียบสิ่งหนึ่งเหมือนอีกสิ่ง" },
+      { text: "ผิวพรรณผุดผ่องราวกับหยวกกล้วย", category: "อุปมา", hint: "มีคำว่า 'ราวกับ' เปรียบเทียบความขาวเนียน" },
+      { text: "ใจของเธอแปรปรวนดั่งสายน้ำไหล", category: "อุปมา", hint: "มีคำว่า 'ดั่ง' เปรียบเทียบความไม่แน่นอน" },
+      { text: "ความรักเหมือนโรคา บันดาลตาให้มืดมน", category: "อุปมา", hint: "มีคำว่า 'เหมือน' เปรียบความรักกับโรคภัย" },
+      { text: "สูงระหงทรงเพรียวเรียวรูด งามละม้ายคล้ายอูฐกะหลาป๋า", category: "อุปมา", hint: "มีคำว่า 'ละม้ายคล้าย' เปรียบเทียบรูปร่าง" },
+      { text: "ริมฝีปากแดงระเรื่อดุจกลีบกุหลาบยามเช้า", category: "อุปมา", hint: "มีคำว่า 'ดุจ' เปรียบเทียบสีริมฝีปากกับกลีบกุหลาบ" },
+
+      { text: "ชาวนาคือกระดูกสันหลังของชาติ", category: "อุปลักษณ์", hint: "ใช้คำว่า 'คือ' เปรียบชาวนาเป็นกระดูกสันหลังโดยตรง" },
+      { text: "เธอคือดวงใจของฉันเพียงผู้เดียว", category: "อุปลักษณ์", hint: "ใช้คำว่า 'คือ' เปรียบคนรักเป็นดวงใจ" },
+      { text: "คุณครูเป็นเรือจ้างผู้ส่งศิษย์ถึงฝั่งฝัน", category: "อุปลักษณ์", hint: "ใช้คำว่า 'เป็น' เปรียบครูกับเรือจ้างโดยตรง" },
+      { text: "หนังสือคือคลังสมองอันล้ำค่าของมนุษย์", category: "อุปลักษณ์", hint: "ใช้คำว่า 'คือ' เปรียบหนังสือเป็นคลังสมอง" },
+      { text: "ทหารเป็นรั้วของชาติที่คอยปกป้องแผ่นดิน", category: "อุปลักษณ์", hint: "ใช้คำว่า 'เป็น' เปรียบทหารเป็นรั้วของชาติ" },
+      { text: "บ้านคือวิมานของเรา", category: "อุปลักษณ์", hint: "ใช้คำว่า 'คือ' เปรียบบ้านเป็นวิมาน" },
+
+      { text: "สายฟ้าร้องคำรามเปรี้ยงปร้างกลางพายุ", category: "สัทพจน์", hint: "'เปรี้ยงปร้าง' เป็นคำเลียนเสียงฟ้าร้อง" },
+      { text: "หัวใจเต้นตึกตักยามสบตาเธอครั้งแรก", category: "สัทพจน์", hint: "'ตึกตัก' เลียนเสียงการเต้นของหัวใจ" },
+      { text: "น้ำตกไหลซ่าซ่ากระทบโขดหินด้านล่าง", category: "สัทพจน์", hint: "'ซ่าซ่า' เลียนเสียงสายน้ำไหลกระทบหิน" },
+      { text: "นาฬิกาเดินติ๊กต็อกท่ามกลางความเงียบงัน", category: "สัทพจน์", hint: "'ติ๊กต็อก' เลียนเสียงเข็มนาฬิกาเดิน" },
+      { text: "ลมพัดใบไผ่เสียดสีกันดังสวบสาบ", category: "สัทพจน์", hint: "'สวบสาบ' เลียนเสียงใบไม้เสียดสีกัน" },
+      { text: "ลูกนกตัวน้อยร้องจิ๊บ ๆ เรียกหาแม่บนรัง", category: "สัทพจน์", hint: "'จิ๊บ ๆ' เลียนเสียงร้องของนก" },
+
+      { text: "สายลมยามเช้ากระซิบบอกรักข้างหู", category: "บุคลาธิษฐาน", hint: "สายลม 'กระซิบ' ซึ่งเป็นกิริยาของมนุษย์" },
+      { text: "ยอดหญ้าก้มกราบหยาดน้ำค้างกลางทุ่งนา", category: "บุคลาธิษฐาน", hint: "ยอดหญ้า 'ก้มกราบ' เหมือนการกระทำของคน" },
+      { text: "ดวงดาวกะพริบตาหยอกล้อดวงจันทร์บนฟากฟ้า", category: "บุคลาธิษฐาน", hint: "ดวงดาว 'หยอกล้อ' เหมือนมีชีวิตจิตใจ" },
+      { text: "ท้องฟ้าร้องไห้เป็นสายฝนโปรยปรายลงมา", category: "บุคลาธิษฐาน", hint: "ท้องฟ้า 'ร้องไห้' แสดงอารมณ์เหมือนมนุษย์" },
+      { text: "เก้าอี้ตัวเก่านั่งเหงาหงอยรอคอยเจ้าของกลับมา", category: "บุคลาธิษฐาน", hint: "เก้าอี้ 'นั่งเหงาหงอยรอคอย' มีความรู้สึกเหมือนคน" },
+      { text: "คลื่นทะเลวิ่งไล่กอดชายหาดอย่างไม่รู้จักเหน็ดเหนื่อย", category: "บุคลาธิษฐาน", hint: "คลื่นทะเล 'วิ่งไล่กอด' เหมือนกิริยามนุษย์" },
+
+      { text: "คิดถึงเธอทุกวินาทีจนใจจะขาดรอน ๆ", category: "อธิพจน์", hint: "'ใจจะขาด' เป็นการกล่าวเกินจริงเพื่อย้ำอารมณ์" },
+      { text: "วันนี้แดดร้อนมากจนตับจะแตกอยู่แล้ว", category: "อธิพจน์", hint: "'ร้อนจนตับจะแตก' เป็นการกล่าวเกินจริง" },
+      { text: "เธอร้องไห้น้ำตาท่วมแผ่นดินเมื่อรู้ข่าวร้าย", category: "อธิพจน์", hint: "'น้ำตาท่วมแผ่นดิน' กล่าวเกินความเป็นจริง" },
+      { text: "คอแห้งเป็นผงเพราะยังไม่ได้ดื่มน้ำตั้งแต่เช้า", category: "อธิพจน์", hint: "'คอแห้งเป็นผง' เป็นการกล่าวเกินจริง" },
+      { text: "รอเธอนานจนรากงอกติดเก้าอี้แล้วนะ", category: "อธิพจน์", hint: "'รอนานจนรากงอก' เป็นการกล่าวเกินจริง" },
+      { text: "เหนื่อยสายตัวแทบขาดจากการทำงานหนักทั้งวัน", category: "อธิพจน์", hint: "'สายตัวแทบขาด' เป็นโวหารกล่าวเกินจริง" },
+
+      { text: "นักเรียนกำลังตั้งใจอ่านหนังสืออยู่ในห้องสมุด", category: "ไม่มีโวหาร", hint: "เป็นประโยคบอกเล่าตามปกติ ไม่มีภาพพจน์" },
+      { text: "วันนี้ท้องฟ้าแจ่มใสและมีลมพัดเย็นสบายตลอดวัน", category: "ไม่มีโวหาร", hint: "บรรยายสภาพอากาศตามจริง ไม่มีโวหารเปรียบเทียบ" },
+      { text: "คุณแม่ทำแกงจืดเต้าหู้หมูสับไว้ให้รับประทานตอนเช้า", category: "ไม่มีโวหาร", hint: "ประโยคบอกเล่าทั่วไป ไม่มีคำเปรียบเทียบ" },
+      { text: "พวกเราช่วยกันทำความสะอาดห้องเรียนหลังเลิกเรียน", category: "ไม่มีโวหาร", hint: "ประโยคบรรยายการกระทำปกติของมนุษย์" },
+      { text: "เขาชอบอ่านวรรณคดีไทยและฝึกแต่งคำประพันธ์ทุกวัน", category: "ไม่มีโวหาร", hint: "เป็นประโยคบอกเล่าข้อเท็จจริง ไม่มีภาพพจน์" },
+      { text: "ฝนตกหนักตั้งแต่เมื่อคืนทำให้ถนนหลายสายมีน้ำท่วมขัง", category: "ไม่มีโวหาร", hint: "รายงานเหตุการณ์ตามจริง ไม่มีการกล่าวเกินจริง" }
+    ];
+
+    let activeQuestions = [...BUILTIN_QUESTIONS];
+    let leaderboardData = JSON.parse(localStorage.getItem('wohan_local_leaders') || '[]');
+    let soundMuted = false;
+    let audioCtx = null;
+
+    // สถานะระหว่างเล่นเกม
+    let gameRunning = false;
+    let score = 0;
+    let combo = 0;
+    let maxCombo = 0;
+    let lives = 3;
+    let timeLeft = 60;
+    let totalAnswered = 0;
+    let totalCorrect = 0;
+    let mistakes = [];
+
+    let fallingCards = [];
+    let cardIdCounter = 0;
+    let lastFrameTime = 0;
+    let spawnAccumulator = 0;
+    let timerInterval = null;
+    let animFrameId = null;
+
+    const DIFFICULTY_CONFIG = {
+      normal:   { baseSpeed: 58, spawnInterval: 2300 },
+      fast:     { baseSpeed: 82, spawnInterval: 1850 },
+      hardcore: { baseSpeed: 110, spawnInterval: 1450 }
+    };
+
+    // ==========================================
+    // ระบบเสียงสังเคราะห์ (Web Audio API)
+    // ==========================================
+    function playSound(type) {
+      if (soundMuted) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'correct') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.14);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+          osc.start(now);
+          osc.stop(now + 0.16);
+        } else if (type === 'fever') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(587.33, now);
+          osc.frequency.setValueAtTime(880, now + 0.08);
+          osc.frequency.setValueAtTime(1174.66, now + 0.16);
+          gain.gain.setValueAtTime(0.22, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        } else if (type === 'wrong') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(190, now);
+          osc.frequency.linearRampToValueAtTime(115, now + 0.22);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+          osc.start(now);
+          osc.stop(now + 0.24);
+        }
+      } catch (e) {}
+    }
+
+    function toggleMute() {
+      soundMuted = !soundMuted;
+      document.getElementById('soundBtn').textContent = soundMuted ? '🔇' : '🔊';
+    }
+
+    // ==========================================
+    // การเชื่อมต่อ Google Sheet (Apps Script)
+    // ==========================================
+    function getScriptUrl() {
+      return localStorage.getItem('wohan_script_url') || DEFAULT_SCRIPT_URL;
+    }
+
+    async function syncWithGoogleSheet() {
+      const url = getScriptUrl();
+      const badge = document.getElementById('dbStatusBadge');
+      const remainEl = document.getElementById('remainCount');
+
+      badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-sky-500/20 text-sky-300 border border-sky-500/30";
+      badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span> กำลังซิงค์ Google Sheet...`;
+
+      try {
+        const res = await fetch(`${url}?action=init`, { redirect: 'follow' });
+        const data = await res.json();
+        if (data.status === 'success') {
+          if (Array.isArray(data.questions) && data.questions.length > 0) {
+            activeQuestions = data.questions;
+          }
+          if (Array.isArray(data.leaderboard)) {
+            leaderboardData = data.leaderboard;
+            localStorage.setItem('wohan_local_leaders', JSON.stringify(leaderboardData));
+          }
+          badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+          badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span> เชื่อมต่อ Sheet แล้ว (${activeQuestions.length} ข้อ)`;
+          if (remainEl) remainEl.textContent = `คลังข้อสอบ ${activeQuestions.length} ข้อ`;
+        }
+      } catch (err) {
+        badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30";
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> โหมดสำรองในเครื่อง (${activeQuestions.length} ข้อ)`;
+      }
+    }
+
+    async function submitScoreToSheet(name, studentClass, finalScore, bestCombo) {
+      const statusEl = document.getElementById('saveScoreStatus');
+      // บันทึกลง LocalStorage ทันที
+      leaderboardData.push({ name, studentClass, score: finalScore, maxCombo: bestCombo });
+      leaderboardData.sort((a, b) => (b.score - a.score) || ((b.maxCombo || 0) - (a.maxCombo || 0)));
+      leaderboardData = leaderboardData.slice(0, 10);
+      localStorage.setItem('wohan_local_leaders', JSON.stringify(leaderboardData));
+
+      const url = getScriptUrl();
+      statusEl.textContent = "⏳ กำลังบันทึกคะแนนลง Google Sheet...";
+
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'saveScore',
+            name,
+            studentClass,
+            score: finalScore,
+            maxCombo: bestCombo
+          })
+        });
+        const data = await res.json();
+        if (data.status === 'success' && Array.isArray(data.leaderboard)) {
+          leaderboardData = data.leaderboard;
+          localStorage.setItem('wohan_local_leaders', JSON.stringify(leaderboardData));
+          statusEl.textContent = "✅ บันทึกคะแนนขึ้น Google Sheet สำเร็จ!";
+        } else {
+          statusEl.textContent = "✅ ส่งคะแนนเรียบร้อย!";
+        }
+      } catch (err) {
+        statusEl.textContent = "💾 บันทึกสถิติในเครื่องแล้ว (ออฟไลน์)";
+      }
+    }
+
+    async function addNewQuestionToSheet() {
+      const textEl = document.getElementById('newQText');
+      const catEl = document.getElementById('newQCategory');
+      const hintEl = document.getElementById('newQHint');
+      const statusEl = document.getElementById('addQStatus');
+
+      const text = textEl.value.trim();
+      const category = catEl.value;
+      const hint = hintEl.value.trim();
+
+      if (!text) {
+        statusEl.textContent = "⚠️ กรุณากรอกข้อความโจทย์ก่อนครับ";
+        return;
+      }
+
+      statusEl.textContent = "⏳ กำลังส่งโจทย์ใหม่เข้า Google Sheet...";
+      try {
+        const res = await fetch(getScriptUrl(), {
+          method: 'POST',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'addQuestion',
+            text,
+            category,
+            hint
+          })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          if (Array.isArray(data.questions)) {
+            activeQuestions = data.questions;
+          } else {
+            activeQuestions.push({ text, category, hint });
+          }
+          textEl.value = '';
+          hintEl.value = '';
+          statusEl.textContent = `✅ เพิ่มโจทย์สำเร็จ! ตอนนี้มีคลังข้อสอบทั้งหมด ${activeQuestions.length} ข้อ`;
+          syncWithGoogleSheet();
+        } else {
+          statusEl.textContent = "❌ เกิดข้อผิดพลาดในการบันทึก";
+        }
+      } catch (err) {
+        statusEl.textContent = "❌ ไม่สามารถเชื่อมต่อ Google Sheet ได้";
+      }
+    }
+
+    // ==========================================
+    // ระบบหลักของเกมสายพาน (Conveyor Belt Engine)
+    // ==========================================
+    function startGame() {
+      const nameInput = document.getElementById('playerNameInput').value.trim();
+      const classInput = document.getElementById('playerClassInput').value.trim();
+      if (nameInput) localStorage.setItem('wohan_player_name', nameInput);
+      if (classInput) localStorage.setItem('wohan_player_class', classInput);
+
+      score = 0;
+      combo = 0;
+      maxCombo = 0;
+      lives = 3;
+      timeLeft = 60;
+      totalAnswered = 0;
+      totalCorrect = 0;
+      mistakes = [];
+      fallingCards = [];
+      spawnAccumulator = 0;
+
+      document.getElementById('cardLayer').innerHTML = '';
+      document.getElementById('homeScreen').classList.add('hidden');
+      document.getElementById('gameOverScreen').classList.add('hidden');
+      document.getElementById('appContainer').classList.remove('fever-active', 'fever-glow');
+      document.getElementById('timerDisplay').textContent = timeLeft;
+
+      updateHUD();
+      gameRunning = true;
+
+      spawnCard();
+
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (!gameRunning) return;
+        timeLeft--;
+        document.getElementById('timerDisplay').textContent = timeLeft;
+        if (timeLeft <= 0) {
+          endGame("⏰ หมดเวลาการคัดสรร!");
+        }
+      }, 1000);
+
+      lastFrameTime = performance.now();
+      if (animFrameId) cancelAnimationFrame(animFrameId);
+      animFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    function spawnCard() {
+      const cardLayer = document.getElementById('cardLayer');
+      const randomQ = activeQuestions[Math.floor(Math.random() * activeQuestions.length)];
+
+      const cardEl = document.createElement('div');
+      cardEl.className = "word-card absolute left-5 right-5 px-4 py-3 rounded-2xl bg-slate-800/95 border-2 border-slate-600 shadow-xl text-center";
+      cardEl.style.top = "-75px";
+      cardEl.innerHTML = `
+        <div class="text-[10px] font-bold tracking-wider uppercase text-slate-400 mb-0.5 flex items-center justify-between">
+          <span>📦 พัสดุโวหาร</span>
+          <span class="target-tag hidden text-amber-300">🎯 เป้าหมายปัจจุบัน</span>
+        </div>
+        <div class="text-base font-bold text-white leading-snug font-body">"${randomQ.text}"</div>
+      `;
+
+      cardLayer.appendChild(cardEl);
+
+      fallingCards.push({
+        id: ++cardIdCounter,
+        el: cardEl,
+        y: -75,
+        question: randomQ
+      });
+
+      highlightBottomCard();
+    }
+
+    function highlightBottomCard() {
+      fallingCards.forEach((card, idx) => {
+        const tag = card.el.querySelector('.target-tag');
+        if (idx === 0) {
+          card.el.classList.remove('border-slate-600', 'opacity-80', 'scale-95');
+          card.el.classList.add('border-amber-400', 'ring-2', 'ring-amber-400/40', 'scale-100');
+          if (tag) tag.classList.remove('hidden');
+        } else {
+          card.el.classList.remove('border-amber-400', 'ring-2', 'ring-amber-400/40', 'scale-100');
+          card.el.classList.add('border-slate-600', 'opacity-80', 'scale-95');
+          if (tag) tag.classList.add('hidden');
+        }
+      });
+    }
+
+    function gameLoop(timestamp) {
+      if (!gameRunning) return;
+      const dt = (timestamp - lastFrameTime) / 1000;
+      lastFrameTime = timestamp;
+
+      const diffKey = document.getElementById('difficultySelect').value || 'normal';
+      const config = DIFFICULTY_CONFIG[diffKey];
+
+      const speedMultiplier = 1 + Math.min(score / 2500, 0.45) + (combo >= 5 ? 0.15 : 0);
+      const currentSpeed = config.baseSpeed * speedMultiplier;
+
+      spawnAccumulator += dt * 1000;
+      if (spawnAccumulator >= config.spawnInterval && fallingCards.length < 3) {
+        spawnAccumulator = 0;
+        spawnCard();
+      } else if (fallingCards.length === 0) {
+        spawnAccumulator = 0;
+        spawnCard();
+      }
+
+      const arenaHeight = document.getElementById('beltArena').clientHeight;
+      const dangerLineY = arenaHeight - 62;
+
+      for (let i = fallingCards.length - 1; i >= 0; i--) {
+        const c = fallingCards[i];
+        c.y += currentSpeed * dt;
+        c.el.style.top = `${c.y}px`;
+
+        if (c.y >= dangerLineY) {
+          handleMissedCard(c);
+          fallingCards.splice(i, 1);
+          highlightBottomCard();
+        }
+      }
+
+      if (gameRunning) {
+        animFrameId = requestAnimationFrame(gameLoop);
+      }
+    }
+
+    function handleAnswer(selectedCategory) {
+      if (!gameRunning || fallingCards.length === 0) return;
+
+      const targetCard = fallingCards.shift();
+      const q = targetCard.question;
+      totalAnswered++;
+
+      if (q.category === selectedCategory) {
+        totalCorrect++;
+        combo++;
+        if (combo > maxCombo) maxCombo = combo;
+
+        const isFever = combo >= 5;
+        const gained = (100 + combo * 10) * (isFever ? 2 : 1);
+        score += gained;
+
+        if (combo === 5) {
+          playSound('fever');
+          showFeedback(`🔥 FEVER MODE! คะแนนคูณสอง! (+${gained})`, true);
+        } else {
+          playSound('correct');
+          showFeedback(`✅ ถูกต้อง! [${q.category}] +${gained}`, true);
+        }
+
+        targetCard.el.style.transform = "scale(1.12) translateY(-15px)";
+        targetCard.el.style.opacity = "0";
+        setTimeout(() => targetCard.el.remove(), 150);
+      } else {
+        combo = 0;
+        lives--;
+        playSound('wrong');
+        if (navigator.vibrate) navigator.vibrate(120);
+
+        mistakes.push({
+          text: q.text,
+          yourAnswer: selectedCategory,
+          correctAnswer: q.category,
+          hint: q.hint
+        });
+
+        showFeedback(`❌ ผิด! เฉลยคือ "${q.category}"`, false);
+        triggerShake();
+        targetCard.el.remove();
+      }
+
+      updateHUD();
+      highlightBottomCard();
+
+      if (lives <= 0) {
+        endGame("💔 หัวใจหมดแล้ว!");
+      } else if (fallingCards.length === 0) {
+        spawnAccumulator = 0;
+        spawnCard();
+      }
+    }
+
+    function handleMissedCard(card) {
+      combo = 0;
+      lives--;
+      totalAnswered++;
+      playSound('wrong');
+      if (navigator.vibrate) navigator.vibrate(150);
+
+      mistakes.push({
+        text: card.question.text,
+        yourAnswer: "ปล่อยตกสายพาน",
+        correctAnswer: card.question.category,
+        hint: card.question.hint
+      });
+
+      showFeedback(`⚠️ พัสดุตกสายพาน! เฉลยคือ "${card.question.category}"`, false);
+      triggerShake();
+      card.el.remove();
+      updateHUD();
+
+      if (lives <= 0) {
+        endGame("💔 หัวใจหมดแล้ว!");
+      }
+    }
+
+    function updateHUD() {
+      document.getElementById('scoreDisplay').textContent = score.toLocaleString();
+      document.getElementById('comboText').textContent = `COMBO x${combo}`;
+      document.getElementById('livesDisplay').textContent = '❤️'.repeat(Math.max(0, lives)) + '🖤'.repeat(Math.max(0, 3 - lives));
+
+      const feverBadge = document.getElementById('feverBadge');
+      const appContainer = document.getElementById('appContainer');
+      if (combo >= 5) {
+        feverBadge.classList.remove('hidden');
+        appContainer.classList.add('fever-active', 'fever-glow');
+      } else {
+        feverBadge.classList.add('hidden');
+        appContainer.classList.remove('fever-active', 'fever-glow');
+      }
+    }
+
+    let toastTimeout = null;
+    function showFeedback(msg, isPositive) {
+      const toast = document.getElementById('feedbackToast');
+      toast.textContent = msg;
+      toast.className = `pointer-events-none transition-opacity duration-200 absolute top-3 inset-x-6 z-20 text-center px-3 py-1.5 rounded-xl text-xs font-bold shadow-lg ${
+        isPositive ? 'bg-emerald-500 text-slate-950' : 'bg-rose-600 text-white'
+      }`;
+      toast.style.opacity = '1';
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.style.opacity = '0';
+      }, 1400);
+    }
+
+    function triggerShake() {
+      const arena = document.getElementById('beltArena');
+      arena.classList.remove('shake-anim');
+      void arena.offsetWidth;
+      arena.classList.add('shake-anim');
+    }
+
+    function endGame(reasonTitle) {
+      gameRunning = false;
+      if (timerInterval) clearInterval(timerInterval);
+      if (animFrameId) cancelAnimationFrame(animFrameId);
+
+      const playerName = document.getElementById('playerNameInput').value.trim() || 'ผู้กล้าไร้นาม';
+      const playerClass = document.getElementById('playerClassInput').value.trim() || '-';
+      const accuracy = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
+
+      document.getElementById('endTitle').textContent = reasonTitle;
+      document.getElementById('endPlayerInfo').textContent = `ผู้เล่น: ${playerName} (${playerClass})`;
+      document.getElementById('finalScore').textContent = score.toLocaleString();
+      document.getElementById('finalCombo').textContent = `x${maxCombo}`;
+      document.getElementById('finalAccuracy').textContent = `${accuracy}%`;
+
+      const mistakeListEl = document.getElementById('mistakeList');
+      const mistakeBadge = document.getElementById('mistakeCountBadge');
+      mistakeBadge.textContent = mistakes.length === 0 ? 'ไร้ที่ติ!' : `${mistakes.length} ข้อ`;
+
+      if (mistakes.length === 0) {
+        mistakeListEl.innerHTML = `<div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-center">🎉 ยอดเยี่ยมมาก! คุณคัดสรรโวหารได้ถูกต้องทุกข้อ!</div>`;
+      } else {
+        mistakeListEl.innerHTML = mistakes.map(m => `
+          <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-700/80">
+            <div class="font-bold text-white">"${m.text}"</div>
+            <div class="flex items-center justify-between mt-1 text-[11px]">
+              <span class="text-rose-400">ตอบ: ${m.yourAnswer}</span>
+              <span class="text-emerald-400 font-bold">เฉลย: ${m.correctAnswer}</span>
+            </div>
+            ${m.hint ? `<div class="text-[11px] text-amber-300/90 mt-0.5">💡 ${m.hint}</div>` : ''}
+          </div>
+        `).join('');
+      }
+
+      document.getElementById('gameOverScreen').classList.remove('hidden');
+      submitScoreToSheet(playerName, playerClass, score, maxCombo);
+    }
+
+    function backToHome() {
+      document.getElementById('gameOverScreen').classList.add('hidden');
+      document.getElementById('homeScreen').classList.remove('hidden');
+    }
+
+    // ==========================================
+    // การจัดการ Modals
+    // ==========================================
+    function openGuideModal() { document.getElementById('guideModal').classList.remove('hidden'); }
+    function closeGuideModal() { document.getElementById('guideModal').classList.add('hidden'); }
+
+    function renderLeaderboardItems() {
+      const container = document.getElementById('leaderboardList');
+      if (!leaderboardData || leaderboardData.length === 0) {
+        container.innerHTML = `<div class="text-center text-slate-400 py-8 text-xs">ยังไม่มีสถิติคะแนน มาประเดิมเป็นคนแรกกันเลย!</div>`;
+      } else {
+        container.innerHTML = leaderboardData.map((item, idx) => {
+          const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+          return `
+            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
+              <div class="flex items-center gap-3">
+                <span class="text-base font-extrabold w-6 text-center text-amber-400">${medal}</span>
+                <div>
+                  <div class="text-sm font-bold text-white">${item.name}</div>
+                  <div class="text-[11px] text-slate-400">ชั้น ${item.studentClass || '-'} • คอมโบสูงสุด x${item.maxCombo || 0}</div>
+                </div>
+              </div>
+              <div class="text-base font-extrabold text-emerald-400">${Number(item.score).toLocaleString()}</div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function openLeaderboardModal() {
+      renderLeaderboardItems();
+      document.getElementById('leaderboardModal').classList.remove('hidden');
+    }
+    function closeLeaderboardModal() { document.getElementById('leaderboardModal').classList.add('hidden'); }
+
+    function openSettingsModal() {
+      document.getElementById('scriptUrlInput').value = getScriptUrl();
+      document.getElementById('syncMessage').textContent = '';
+      document.getElementById('addQStatus').textContent = '';
+      document.getElementById('settingsModal').classList.remove('hidden');
+    }
+    function closeSettingsModal() { document.getElementById('settingsModal').classList.add('hidden'); }
+
+    async function saveScriptUrl() {
+      const val = document.getElementById('scriptUrlInput').value.trim();
+      if (val) {
+        localStorage.setItem('wohan_script_url', val);
+      } else {
+        localStorage.removeItem('wohan_script_url');
+      }
+      document.getElementById('syncMessage').textContent = '⏳ กำลังซิงค์กับ Google Sheet...';
+      await syncWithGoogleSheet();
+      document.getElementById('syncMessage').textContent = '✅ ซิงค์ข้อมูลล่าสุดเรียบร้อย!';
+    }
+
+    function clearScriptUrl() {
+      localStorage.removeItem('wohan_script_url');
+      document.getElementById('scriptUrlInput').value = DEFAULT_SCRIPT_URL;
+      syncWithGoogleSheet();
+      document.getElementById('syncMessage').textContent = 'คืนค่าลิงก์เริ่มต้นของครูนนทพัทธ์เรียบร้อยแล้ว';
+    }
+
+    // โหลดข้อมูลทันทีเมื่อเปิดหน้าเว็บ
+    window.addEventListener('DOMContentLoaded', () => {
+      // ล้างค่าว่างที่อาจค้างใน LocalStorage เพื่อให้ใช้ลิงก์ใหม่เสมอ
+      if (!localStorage.getItem('wohan_script_url')) {
+        localStorage.setItem('wohan_script_url', DEFAULT_SCRIPT_URL);
+      }
+      const savedName = localStorage.getItem('wohan_player_name');
+      const savedClass = localStorage.getItem('wohan_player_class');
+      if (savedName) document.getElementById('playerNameInput').value = savedName;
+      if (savedClass) document.getElementById('playerClassInput').value = savedClass;
+      syncWithGoogleSheet();
+    });
+  </script>
+</body>
+</html>
